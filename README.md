@@ -1,11 +1,13 @@
 ## ranlinconf: Track changes of the configuration of your linux servers
 
+# This is a fork to manage git repository
+
 Requirements
 * linux box
 * Python 2.6 or higher
 * [paramiko](http://www.lag.net/paramiko/) library
 * Create/Commit rights to a CVS or Subversion repository
-* cvs or svn binaries in the PATH
+* cvs, svn or git binaries in the PATH
 
 Installation:
 -------------
