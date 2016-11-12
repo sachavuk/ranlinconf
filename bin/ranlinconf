@@ -100,6 +100,49 @@ def manage_cvs_and_notification(server_name, filename):
     print "Commiting %s" % filename
     subprocess.call(["cvs", "commit", "-m", "Update", "%s" % filename])
 
+def manage_git_and_notification(server_name, filename):
+    try:
+        output = check_output(["git", "status", "--porcelain", "%s" % filename])
+    except WindowsError, e:
+           print "Please ensure git.exe is in your PATH"
+           return
+
+    if "?? " in output:
+        print "Status unknown for %s" % filename
+        try:
+            output = subprocess.check_call(["git", "add", "%s" % filename])
+        except subprocess.CalledProcessError, e:
+            print "%s" % e
+
+        print "New file %s" % filename
+        modif = file(filename, "r").readlines()
+        body = ''.join(modif)
+        EMAIL_FROM = conf_get_IFP(config, "GENERAL", "EMAIL_FROM", "")
+        EMAIL_TO = conf_get_IFP(config, "GENERAL", "EMAIL_TO", "")
+
+        if '@' in EMAIL_FROM and '@' in EMAIL_TO:
+            for email_to in EMAIL_TO.split(";"):
+                send_mail(EMAIL_FROM, email_to.strip(), "New server: %s" % server_name, body)
+
+    elif "M " in output:
+        output = check_output(["git", "diff", "%s" % filename])
+        print "Modifications detected for %s" % filename
+        modif = output.split('\r\n')[4:]
+        body = '\n'.join(modif)
+        EMAIL_FROM = conf_get_IFP(config, "GENERAL", "EMAIL_FROM", "")
+        EMAIL_TO = conf_get_IFP(config, "GENERAL", "EMAIL_TO", "")
+
+        if '@' in EMAIL_FROM and '@' in EMAIL_TO:
+            try:
+                send_mail(EMAIL_FROM, EMAIL_TO, "Changes detected for: %s" % server_name, body)
+            except Exception, e:
+                print "Sending mail has failed, please check value of MTA_SERVER in the configuration file."
+    else:
+        pass
+
+    print "Commiting %s" % filename
+    subprocess.call(["git", "commit", "-m", "Update"])
+
 def manage_svn_and_notification(server_name, filename):
     try:
         output = check_output(["svn", "status", "%s" % filename])
@@ -150,6 +193,8 @@ def manage_vcs_and_notification(server_name, filename):
         manage_cvs_and_notification(server_name, filename)
     elif VCS == "SVN":
         manage_svn_and_notification(server_name, filename)
+    elif VCS == "GIT":
+        manage_git_and_notification(server_name, filename)
     elif VCS.upper() == "NONE":
         return
     else:
