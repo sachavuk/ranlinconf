@@ -107,7 +107,7 @@ def manage_git_and_notification(server_name, filename):
            print "Please ensure git.exe is in your PATH"
            return
 
-    if "?? " in output:
+    if "??" in output:
         print "Status unknown for %s" % filename
         try:
             output = subprocess.check_call(["git", "add", "%s" % filename])
@@ -124,7 +124,7 @@ def manage_git_and_notification(server_name, filename):
             for email_to in EMAIL_TO.split(";"):
                 send_mail(EMAIL_FROM, email_to.strip(), "New server: %s" % server_name, body)
 
-    elif "M " in output:
+    elif "M" in output:
         output = check_output(["git", "diff", "%s" % filename])
         print "Modifications detected for %s" % filename
         modif = output.split('\r\n')[4:]
@@ -137,6 +137,10 @@ def manage_git_and_notification(server_name, filename):
                 send_mail(EMAIL_FROM, EMAIL_TO, "Changes detected for: %s" % server_name, body)
             except Exception, e:
                 print "Sending mail has failed, please check value of MTA_SERVER in the configuration file."
+        try:
+            output = subprocess.check_call(["git", "add", "%s" % filename])
+        except subprocess.CalledProcessError, e:
+            print "%s" % e
     else:
         pass
 
@@ -185,6 +189,12 @@ def manage_svn_and_notification(server_name, filename):
 
     print "Commiting %s" % filename
     subprocess.call(["svn", "commit", "-m", "Update", "%s" % filename])
+
+def push_to_repo():
+    try:
+        subprocess.check_call(["git", "push", "origin", "master"])
+    except subprocess.CalledProcessError, e:
+        print "%s" % e
 
 def manage_vcs_and_notification(server_name, filename):
     VCS = conf_get_IFP(config, "GENERAL", "VCS", "NONE")
@@ -266,6 +276,11 @@ def linconf_multi():
         except Exception, e:
             print "[Exception] %s" % server_name
             print "%s" % e
+
+    VCS = conf_get_IFP(config, "GENERAL", "VCS", "NONE")
+    if VCS == "GIT":
+        push_to_repo()
+
 
 DEFAULT_CONFIGURATION = \
 """# This is the default configuration file
