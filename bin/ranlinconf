@@ -127,7 +127,7 @@ def manage_git_and_notification(server_name, filename):
     elif "M" in output:
         output = check_output(["git", "diff", "%s" % filename])
         print "Modifications detected for %s" % filename
-        modif = output.split('\r\n')[4:]
+        modif = output.split('\n')
         body = '\n'.join(modif)
         EMAIL_FROM = conf_get_IFP(config, "GENERAL", "EMAIL_FROM", "")
         EMAIL_TO = conf_get_IFP(config, "GENERAL", "EMAIL_TO", "")
