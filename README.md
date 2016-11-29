@@ -1,6 +1,6 @@
 ## ranlinconf: Track changes of the configuration of your linux servers
 
-# This is a fork to manage git repository
+# This is a fork from sebbrochet/ranlinconf to manage git repository
 
 Requirements
 * linux box
